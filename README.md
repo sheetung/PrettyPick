@@ -4,9 +4,6 @@
 
 ---
 
-<a name="english"></a>
-## English
-
 ### Introduction
 
 **PrettyPick** is a LangBot plugin that fetches beautiful images from various styles. Hand-picking the most captivating beauty from a myriad of styles, just to steal your heart.
