@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import httpx
 import asyncio
+import logging
 from langbot_plugin.api.definition.components.common.event_listener import EventListener
 from langbot_plugin.api.entities import events, context
 from langbot_plugin.api.entities.builtin.platform import message as platform_message
@@ -15,7 +16,7 @@ class DefaultEventListener(EventListener):
 
     async def initialize(self):
         await super().initialize()
-
+        self.logger = logging.getLogger(__name__)
         # 获取插件配置
         self.beauty_trigger = self.plugin.get_config().get("beauty_trigger", "看妹妹")
         self.image_count_limit = self.plugin.get_config().get("image_count_limit", 3)
@@ -32,7 +33,8 @@ class DefaultEventListener(EventListener):
                     access_token=self.onebot_access_token if self.onebot_access_token else None
                 )
             except ImportError:
-                self.plugin.ap.logger.warning("合并转发模块未找到，将使用普通消息发送")
+                self.logger.warning("合并转发模块未找到，将使用普通消息发送")
+                self.plugin.logger
                 self.forward_sender = None
         else:
             self.forward_sender = None
@@ -169,11 +171,11 @@ class DefaultEventListener(EventListener):
             )
 
             if not result.get('success'):
-                self.plugin.ap.logger.error(f"合并转发发送失败: {result.get('error')}")
+                self.logger.error(f"合并转发发送失败: {result.get('error')}")
                 # 如果合并转发失败，降级使用普通消息
                 await self._send_normal(event_context, results, requested_count, limit)
         except Exception as e:
-            self.plugin.ap.logger.error(f"合并转发发送异常: {str(e)}")
+            self.logger.error(f"合并转发发送异常: {str(e)}")
             # 如果合并转发失败，降级使用普通消息
             await self._send_normal(event_context, results, requested_count, limit)
 

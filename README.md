@@ -10,6 +10,14 @@
 
 ### Features
 
+#### Notes for LangBot Deployed in Docker Environment
+
+For the HTTP server configuration in NapCat, refer to the image below. The name can be set arbitrarily. The host must be 0.0.0.0 and the port can be any available one.
+
+![](./assets/napcathttp.png)
+
+LangBot shall use the physical IP address of the host machine.
+
 - **Smart Image Fetching**: Concurrent image retrieval with automatic retry mechanism
 - **Flexible Message Modes**:
   - Single image mode for individual requests
