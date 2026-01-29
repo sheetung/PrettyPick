@@ -23,6 +23,7 @@ class DefaultEventListener(EventListener):
         self.use_forward = self.plugin.get_config().get("use_forward", True)
         self.onebot_api_url = self.plugin.get_config().get("onebot_api_url", "http://127.0.0.1:3000")
         self.onebot_access_token = self.plugin.get_config().get("onebot_access_token", "")
+        self.mmproxy = self.plugin.get_config().get("mmproxy", "s")
 
         # 如果启用合并转发，导入工具
         if self.use_forward:
@@ -83,10 +84,13 @@ class DefaultEventListener(EventListener):
         """
         api_url = "https://3650000.xyz/api/?type=json&mode=1,3,5,8"
 
+        # 配置代理（如果设置了 mmproxy）
+        proxy = self.mmproxy if self.mmproxy else None
+
         for attempt in range(max_retries):
             try:
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(api_url, timeout=10.0)
+                async with httpx.AsyncClient(proxy=proxy, timeout=15.0) as client:
+                    response = await client.get(api_url)
                     if response.status_code == 200:
                         response_data = response.json()
                         if response_data.get("code") == 200:
@@ -102,6 +106,7 @@ class DefaultEventListener(EventListener):
 
             # 如果是最后一次重试，返回错误信息
             if attempt == max_retries - 1:
+                self.logger.warning(f"获取图片失败 (重试{max_retries}次): {error_msg}")
                 return error_msg
 
             # 等待后重试

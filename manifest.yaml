@@ -4,7 +4,7 @@ metadata:
   author: sheetung
   name: PrettyPick
   repository: ''
-  version: 0.1.5
+  version: 0.2.5
   description:
     en_US: Hand-picking the most captivating beauty from a myriad of styles, just
       to steal your heart.
@@ -48,6 +48,13 @@ spec:
       label:
         en_US: 'OneBot HTTP Server Access Token'
         zh_Hans: 'OneBot HTTP 服务器访问令牌'
+      required: false
+      default: ''
+    - name: mmproxy
+      type: string
+      label:
+        en_US: 'Proxy'
+        zh_Hans: '代理（应对较差网络环境）'
       required: false
       default: ''
   components:
