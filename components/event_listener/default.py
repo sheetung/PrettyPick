@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import time
 import httpx
 import asyncio
 import logging
@@ -20,10 +21,14 @@ class DefaultEventListener(EventListener):
         # 获取插件配置
         self.beauty_trigger = self.plugin.get_config().get("beauty_trigger", "看妹妹")
         self.image_count_limit = self.plugin.get_config().get("image_count_limit", 3)
+        self.cooldown_seconds = self.plugin.get_config().get("cooldown_seconds", 60)
         self.use_forward = self.plugin.get_config().get("use_forward", True)
         self.onebot_api_url = self.plugin.get_config().get("onebot_api_url", "http://127.0.0.1:3000")
         self.onebot_access_token = self.plugin.get_config().get("onebot_access_token", "")
-        self.mmproxy = self.plugin.get_config().get("mmproxy", "s")
+        self.mmproxy = self.plugin.get_config().get("mmproxy", "")
+
+        # 用户冷却时间记录 {user_id: last_request_timestamp}
+        self.user_cooldowns: dict[str, float] = {}
 
         # 如果启用合并转发，导入工具
         if self.use_forward:
@@ -41,14 +46,38 @@ class DefaultEventListener(EventListener):
             self.forward_sender = None
 
         @self.handler(events.GroupMessageReceived)
+        @self.handler(events.PersonMessageReceived)
         async def handler(event_context: context.EventContext):
             """处理群消息事件"""
             # 获取用户消息文本
             message_text = str(event_context.event.message_chain)
 
+            sender_id = str(event_context.event.sender_id)
+
             # 检查是否包含触发词
             if not message_text.startswith(self.beauty_trigger):
                 return
+
+            # 检查用户冷却时间
+            current_time = time.time()
+            if sender_id in self.user_cooldowns:
+                last_request_time = self.user_cooldowns[sender_id]
+                time_passed = current_time - last_request_time
+                remaining_time = self.cooldown_seconds - time_passed
+
+                if remaining_time > 0:
+                    # 用户仍在冷却中
+                    await event_context.reply(
+                        platform_message.MessageChain([
+                            platform_message.Plain(
+                                text=f"大人请稍等，您需要再等待 {int(remaining_time)} 秒才能再次请求哦~"
+                            )
+                        ])
+                    )
+                    return
+
+            # 更新用户最后请求时间
+            self.user_cooldowns[sender_id] = current_time
 
             # 解析请求的图片数量
             args = message_text[len(self.beauty_trigger):].strip()
@@ -224,3 +253,6 @@ class DefaultEventListener(EventListener):
         await event_context.reply(
             platform_message.MessageChain(message_chain)
         )
+
+        # 阻止默认行为
+        event_context.prevent_default()

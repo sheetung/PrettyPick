@@ -4,7 +4,7 @@ metadata:
   author: sheetung
   name: PrettyPick
   repository: ''
-  version: 0.2.5
+  version: 0.3.6
   description:
     en_US: Hand-picking the most captivating beauty from a myriad of styles, just
       to steal your heart.
@@ -29,6 +29,13 @@ spec:
         zh_Hans: '最多单次图片数量'
       required: true
       default: 3
+    - name: cooldown_seconds
+      type: integer
+      label:
+        en_US: 'Cooldown Time Per User (Seconds)'
+        zh_Hans: '每用户请求冷却时间（秒）'
+      required: true
+      default: 60
     - name: use_forward
       type: boolean
       label:
